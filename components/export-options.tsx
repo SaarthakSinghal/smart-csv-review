@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -22,27 +22,36 @@ interface ExportOptionsProps {
   rejectedItems: CSVRow[]
 }
 
-export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: ExportOptionsProps) {
+export function ExportOptions({ acceptedItems = [], doableItems = [], rejectedItems = [] }: ExportOptionsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [exportFormat, setExportFormat] = useState<"csv" | "json" | "summary">("csv")
   const { toast } = useToast()
 
-  const generateCSV = (items: CSVRow[], listType: string) => {
-    const headers = ["PS Number", "Title", "Description", "Organisation", "Theme", "List Type"]
-    const rows = items.map((item) => [
-      item.psNumber,
-      `"${item.title.replace(/"/g, '""')}"`,
-      `"${item.description.replace(/"/g, '""')}"`,
-      `"${item.organisation.replace(/"/g, '""')}"`,
-      `"${item.theme.replace(/"/g, '""')}"`,
-      listType,
-    ])
+  const allItemsWithType = useMemo(
+    () => [
+      ...acceptedItems.map((item) => ({ ...item, listType: "Accepted" })),
+      ...doableItems.map((item) => ({ ...item, listType: "Doable" })),
+      ...rejectedItems.map((item) => ({ ...item, listType: "Rejected" })),
+    ],
+    [acceptedItems, doableItems, rejectedItems],
+  )
 
-    return [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
+  const csvHeaders = ["PS Number", "Title", "Description", "Organisation", "Theme", "List Type"]
+
+  const generateCSV = (items: (CSVRow & { listType: string })[]) => {
+    const rows = items.map((item) => [
+      item.psNumber ?? "",
+      `"${(item.title ?? "").replace(/"/g, '""')}"`,
+      `"${(item.description ?? "").replace(/"/g, '""')}"`,
+      `"${(item.organisation ?? "").replace(/"/g, '""')}"`,
+      `"${(item.theme ?? "").replace(/"/g, '""')}"`,
+      item.listType,
+    ])
+    return [csvHeaders.join(","), ...rows.map((r) => r.join(","))].join("\n")
   }
 
-  const generateJSON = () => {
-    return JSON.stringify(
+  const generateJSON = () =>
+    JSON.stringify(
       {
         accepted: acceptedItems,
         doable: doableItems,
@@ -57,7 +66,6 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
       null,
       2,
     )
-  }
 
   const generateSummary = () => {
     const sections = [
@@ -65,15 +73,12 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
       { title: "DOABLE ITEMS", items: doableItems },
       { title: "REJECTED ITEMS", items: rejectedItems },
     ]
-
     return sections
       .map((section) => {
-        if (section.items.length === 0) return `${section.title}\nNo items in this category.\n`
-
+        if (!section.items || section.items.length === 0) return `${section.title}\nNo items in this category.\n`
         const itemsList = section.items
           .map((item) => `${item.psNumber}: ${item.title}${item.organisation ? ` (${item.organisation})` : ""}`)
           .join("\n")
-
         return `${section.title}\n${itemsList}\n`
       })
       .join("\n")
@@ -94,35 +99,15 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
   const handleExport = (format: "csv" | "json" | "summary") => {
     const timestamp = new Date().toISOString().split("T")[0]
 
-    switch (format) {
-      case "csv":
-        const allItems = [
-          ...acceptedItems.map((item) => ({ ...item, listType: "Accepted" })),
-          ...doableItems.map((item) => ({ ...item, listType: "Doable" })),
-          ...rejectedItems.map((item) => ({ ...item, listType: "Rejected" })),
-        ]
-        const headers = ["PS Number", "Title", "Description", "Organisation", "Theme", "List Type"]
-        const rows = allItems.map((item) => [
-          item.psNumber,
-          `"${item.title.replace(/"/g, '""')}"`,
-          `"${item.description.replace(/"/g, '""')}"`,
-          `"${item.organisation.replace(/"/g, '""')}"`,
-          `"${item.theme.replace(/"/g, '""')}"`,
-          item.listType,
-        ])
-        const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
-        downloadFile(csvContent, `csv-review-export-${timestamp}.csv`, "text/csv")
-        break
-
-      case "json":
-        const jsonContent = generateJSON()
-        downloadFile(jsonContent, `csv-review-export-${timestamp}.json`, "application/json")
-        break
-
-      case "summary":
-        const summaryContent = generateSummary()
-        downloadFile(summaryContent, `csv-review-summary-${timestamp}.txt`, "text/plain")
-        break
+    if (format === "csv") {
+      const csvContent = generateCSV(allItemsWithType)
+      downloadFile(csvContent, `csv-review-export-${timestamp}.csv`, "text/csv")
+    } else if (format === "json") {
+      const jsonContent = generateJSON()
+      downloadFile(jsonContent, `csv-review-export-${timestamp}.json`, "application/json")
+    } else {
+      const summaryContent = generateSummary()
+      downloadFile(summaryContent, `csv-review-summary-${timestamp}.txt`, "text/plain")
     }
 
     toast({
@@ -138,7 +123,7 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
         title: "Copied to Clipboard",
         description: `${type} has been copied to your clipboard.`,
       })
-    } catch (err) {
+    } catch {
       toast({
         title: "Copy Failed",
         description: "Unable to copy to clipboard. Please try again.",
@@ -148,28 +133,9 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
   }
 
   const getPreviewContent = () => {
-    switch (exportFormat) {
-      case "csv":
-        const allItems = [
-          ...acceptedItems.map((item) => ({ ...item, listType: "Accepted" })),
-          ...doableItems.map((item) => ({ ...item, listType: "Doable" })),
-          ...rejectedItems.map((item) => ({ ...item, listType: "Rejected" })),
-        ]
-        const headers = ["PS Number", "Title", "Description", "Organisation", "Theme", "List Type"]
-        const rows = allItems.map((item) => [
-          item.psNumber,
-          `"${item.title.replace(/"/g, '""')}"`,
-          `"${item.description.replace(/"/g, '""')}"`,
-          `"${item.organisation.replace(/"/g, '""')}"`,
-          `"${item.theme.replace(/"/g, '""')}"`,
-          item.listType,
-        ])
-        return [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
-      case "json":
-        return generateJSON()
-      case "summary":
-        return generateSummary()
-    }
+    if (exportFormat === "csv") return generateCSV(allItemsWithType)
+    if (exportFormat === "json") return generateJSON()
+    return generateSummary()
   }
 
   return (
@@ -182,20 +148,44 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2 cursor-pointer">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault()
+              handleExport("csv")
+            }}
+            className="gap-2 cursor-pointer"
+          >
             <Table className="w-4 h-4" />
             Export as CSV
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport("json")} className="gap-2 cursor-pointer">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault()
+              handleExport("json")
+            }}
+            className="gap-2 cursor-pointer"
+          >
             <FileText className="w-4 h-4" />
             Export as JSON
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport("summary")} className="gap-2 cursor-pointer">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault()
+              handleExport("summary")
+            }}
+            className="gap-2 cursor-pointer"
+          >
             <FileText className="w-4 h-4" />
             Export Summary
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsDialogOpen(true)} className="gap-2 cursor-pointer">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault()
+              setIsDialogOpen(true)
+            }}
+            className="gap-2 cursor-pointer"
+          >
             <Copy className="w-4 h-4" />
             Copy to Clipboard
           </DropdownMenuItem>
