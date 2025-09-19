@@ -101,7 +101,16 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
           ...doableItems.map((item) => ({ ...item, listType: "Doable" })),
           ...rejectedItems.map((item) => ({ ...item, listType: "Rejected" })),
         ]
-        const csvContent = generateCSV(allItems, "")
+        const headers = ["PS Number", "Title", "Description", "Organisation", "Theme", "List Type"]
+        const rows = allItems.map((item) => [
+          item.psNumber,
+          `"${item.title.replace(/"/g, '""')}"`,
+          `"${item.description.replace(/"/g, '""')}"`,
+          `"${item.organisation.replace(/"/g, '""')}"`,
+          `"${item.theme.replace(/"/g, '""')}"`,
+          item.listType,
+        ])
+        const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
         downloadFile(csvContent, `csv-review-export-${timestamp}.csv`, "text/csv")
         break
 
@@ -141,7 +150,21 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
   const getPreviewContent = () => {
     switch (exportFormat) {
       case "csv":
-        return generateCSV([...acceptedItems, ...doableItems, ...rejectedItems], "")
+        const allItems = [
+          ...acceptedItems.map((item) => ({ ...item, listType: "Accepted" })),
+          ...doableItems.map((item) => ({ ...item, listType: "Doable" })),
+          ...rejectedItems.map((item) => ({ ...item, listType: "Rejected" })),
+        ]
+        const headers = ["PS Number", "Title", "Description", "Organisation", "Theme", "List Type"]
+        const rows = allItems.map((item) => [
+          item.psNumber,
+          `"${item.title.replace(/"/g, '""')}"`,
+          `"${item.description.replace(/"/g, '""')}"`,
+          `"${item.organisation.replace(/"/g, '""')}"`,
+          `"${item.theme.replace(/"/g, '""')}"`,
+          item.listType,
+        ])
+        return [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
       case "json":
         return generateJSON()
       case "summary":
