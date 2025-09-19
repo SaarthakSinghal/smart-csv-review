@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useCSVStore } from "@/lib/csv-store"
-import { Upload, FileSpreadsheet, Zap } from "lucide-react"
+import { Upload, FileSpreadsheet, Zap, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AppNavigation } from "@/components/app-navigation"
@@ -61,9 +61,7 @@ export default function HomePage() {
             </Card>
 
             <Card className="p-6 text-left hover:shadow-lg transition-shadow">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mb-4">
-                <span className="text-primary-foreground font-bold text-sm">3</span>
-              </div>
+              <List className="w-8 h-8 text-primary mb-4" />
               <h3 className="font-semibold mb-2">Smart Lists</h3>
               <p className="text-sm text-muted-foreground">
                 Organize into Accept, Doable, and Reject lists with drag-and-drop
@@ -73,7 +71,11 @@ export default function HomePage() {
 
           {/* CTA */}
           <div className="animate-scale-in">
-            <Button size="lg" className="text-lg px-8 py-6 h-auto" onClick={() => router.push("/upload")}>
+            <Button
+              size="lg"
+              className="text-lg px-8 py-6 h-auto cursor-pointer"
+              onClick={() => router.push("/upload")}
+            >
               <Upload className="w-5 h-5 mr-2" />
               Start Reviewing
             </Button>

@@ -153,26 +153,26 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button className="gap-2">
+          <Button className="gap-2 cursor-pointer">
             <Download className="w-4 h-4" />
             Export
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2">
+          <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2 cursor-pointer">
             <Table className="w-4 h-4" />
             Export as CSV
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport("json")} className="gap-2">
+          <DropdownMenuItem onClick={() => handleExport("json")} className="gap-2 cursor-pointer">
             <FileText className="w-4 h-4" />
             Export as JSON
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport("summary")} className="gap-2">
+          <DropdownMenuItem onClick={() => handleExport("summary")} className="gap-2 cursor-pointer">
             <FileText className="w-4 h-4" />
             Export Summary
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsDialogOpen(true)} className="gap-2">
+          <DropdownMenuItem onClick={() => setIsDialogOpen(true)} className="gap-2 cursor-pointer">
             <Copy className="w-4 h-4" />
             Copy to Clipboard
           </DropdownMenuItem>
@@ -219,7 +219,7 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="cursor-pointer">
                 Cancel
               </Button>
               <Button
@@ -227,7 +227,7 @@ export function ExportOptions({ acceptedItems, doableItems, rejectedItems }: Exp
                   copyToClipboard(getPreviewContent(), exportFormat.toUpperCase())
                   setIsDialogOpen(false)
                 }}
-                className="gap-2"
+                className="gap-2 cursor-pointer"
               >
                 <Copy className="w-4 h-4" />
                 Copy to Clipboard

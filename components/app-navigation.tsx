@@ -59,7 +59,7 @@ export function AppNavigation() {
               size="sm"
               onClick={() => !item.disabled && router.push(item.path)}
               disabled={item.disabled}
-              className="gap-2 rounded-full relative"
+              className="gap-2 rounded-full relative cursor-pointer disabled:cursor-not-allowed"
             >
               <Icon className="w-4 h-4" />
               <span className="hidden sm:inline">{item.label}</span>
