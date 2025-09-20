@@ -121,9 +121,9 @@ export function ReviewCard({ item, totalItems, isDescriptionExpanded, onToggleDe
               onClick={() => handleReview("reject")}
               className="gap-2 bg-destructive hover:bg-destructive/90 transition-colors"
             >
-              <X className="w-5 h-5" />
-              Reject
-              <kbd className="ml-2 px-2 py-1 text-xs text-red-200 bg-destructive-foreground/20 rounded">←</kbd>
+              <X className="w-5 h-5 text-white" />
+              <span className="text-white">Reject</span>
+              <kbd className="ml-2 px-2 py-1 text-xs text-red-200 bg-destructive-foreground/10 rounded">←</kbd>
             </Button>
 
             <Button
