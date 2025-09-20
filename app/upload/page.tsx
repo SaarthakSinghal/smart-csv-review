@@ -1,114 +1,94 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
-import Papa from "papaparse";
-import { useCSVStore } from "@/lib/csv-store";
-import type { ColumnMapping, CSVRow } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Upload, FileSpreadsheet, ArrowRight, RotateCcw } from "lucide-react";
-import { CSVPreview } from "@/components/csv-preview";
-import { AppNavigation } from "@/components/app-navigation";
+import { useState, useCallback, useRef } from "react"
+import { useRouter } from "next/navigation"
+import Papa from "papaparse"
+import { useCSVStore } from "@/lib/csv-store"
+import type { ColumnMapping, CSVRow } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Upload, FileSpreadsheet, ArrowRight, RotateCcw } from "lucide-react"
+import { CSVPreview } from "@/components/csv-preview"
+import { AppNavigation } from "@/components/app-navigation"
 
 export default function UploadPage() {
-  const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { setCSVData, setColumnMapping, columnMapping, resetApp } =
-    useCSVStore();
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { setCSVData, setColumnMapping, columnMapping, resetApp } = useCSVStore()
 
-  const [rawData, setRawData] = useState<string[][]>([]);
-  const [headers, setHeaders] = useState<string[]>([]);
-  const [isUploaded, setIsUploaded] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [rawData, setRawData] = useState<string[][]>([])
+  const [headers, setHeaders] = useState<string[]>([])
+  const [isUploaded, setIsUploaded] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const handleFileUpload = useCallback(
     (file: File) => {
-      if (!file) return;
+      if (!file) return
 
-      setIsProcessing(true);
+      setIsProcessing(true)
       Papa.parse(file, {
         complete: (results: any) => {
-          const data = results.data as string[][];
+          const data = results.data as string[][]
           if (data.length > 0) {
-            const headers = data[0];
-            const rows = data
-              .slice(1)
-              .filter((row) => row.some((cell) => cell.trim()));
+            const headers = data[0]
+            const rows = data.slice(1).filter((row) => row.some((cell) => cell.trim()))
 
-            setHeaders(headers);
-            setRawData(rows);
-            setIsUploaded(true);
+            setHeaders(headers)
+            setRawData(rows)
+            setIsUploaded(true)
 
             // Auto-detect common column mappings
             const autoMapping: ColumnMapping = {
-              psNumber:
-                headers.find((h) =>
-                  /ps.?number|problem.?statement.?number|id/i.test(h)
-                ) || "PS Number",
-              title:
-                headers.find((h) => /title|name|problem.?statement/i.test(h)) ||
-                "Title",
-              description:
-                headers.find((h) => /description|detail|summary/i.test(h)) ||
-                "Description",
-              organisation:
-                headers.find((h) =>
-                  /org|organization|organisation|company/i.test(h)
-                ) || "Organisation",
-              theme:
-                headers.find((h) => /theme|category|domain|area/i.test(h)) ||
-                "Theme",
-            };
-            setColumnMapping(autoMapping);
+              psNumber: headers.find((h) => /ps.?number|problem.?statement.?number|id/i.test(h)) || "PS Number",
+              title: headers.find((h) => /title|name|problem.?statement/i.test(h)) || "Title",
+              description: headers.find((h) => /description|detail|summary/i.test(h)) || "Description",
+              organisation: headers.find((h) => /org|organization|organisation|company/i.test(h)) || "Organisation",
+              theme: headers.find((h) => /theme|category|domain|area/i.test(h)) || "Theme",
+              submittedIdea: headers.find((h) => /submitted.?idea|idea|suggestion/i.test(h)) || "Submitted Idea(s)",
+            }
+            setColumnMapping(autoMapping)
           }
-          setIsProcessing(false);
+          setIsProcessing(false)
         },
         header: false,
         skipEmptyLines: true,
-      });
+      })
     },
-    [setColumnMapping]
-  );
+    [setColumnMapping],
+  )
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
+      e.preventDefault()
+      const file = e.dataTransfer.files[0]
       if (file && file.type === "text/csv") {
-        handleFileUpload(file);
+        handleFileUpload(file)
       }
     },
-    [handleFileUpload]
-  );
+    [handleFileUpload],
+  )
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
+      const file = e.target.files?.[0]
       if (file) {
-        handleFileUpload(file);
+        handleFileUpload(file)
       }
     },
-    [handleFileUpload]
-  );
+    [handleFileUpload],
+  )
 
   const updateColumnMapping = (field: keyof ColumnMapping, value: string) => {
-    setColumnMapping({ ...columnMapping, [field]: value });
-  };
+    setColumnMapping({ ...columnMapping, [field]: value })
+  }
 
   const processData = () => {
     if (!columnMapping.psNumber || !columnMapping.title) {
-      return;
+      return
     }
 
     const processedData: CSVRow[] = rawData.map((row, index) => ({
@@ -118,15 +98,15 @@ export default function UploadPage() {
       description: row[headers.indexOf(columnMapping.description)] || "",
       organisation: row[headers.indexOf(columnMapping.organisation)] || "",
       theme: row[headers.indexOf(columnMapping.theme)] || "",
+      submittedIdea: row[headers.indexOf(columnMapping.submittedIdea)] || "",
       rowNumber: index + 1,
-    }));
+    }))
 
-    setCSVData(processedData);
-    router.push("/review");
-  };
+    setCSVData(processedData)
+    router.push("/review")
+  }
 
-  const canProceed =
-    columnMapping.psNumber && columnMapping.title && rawData.length > 0;
+  const canProceed = columnMapping.psNumber && columnMapping.title && rawData.length > 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
@@ -138,9 +118,7 @@ export default function UploadPage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold mb-2">CSV Upload & Mapping</h1>
-              <p className="text-muted-foreground">
-                Upload your CSV file and map columns to get started
-              </p>
+              <p className="text-muted-foreground">Upload your CSV file and map columns to get started</p>
             </div>
             <div className="flex items-center gap-3">
               {isUploaded && (
@@ -155,19 +133,15 @@ export default function UploadPage() {
                   size="sm"
                   className="cursor-pointer bg-transparent"
                   onClick={() => {
-                    setIsUploaded(false);
-                    setRawData([]);
-                    setHeaders([]);
+                    setIsUploaded(false)
+                    setRawData([])
+                    setHeaders([])
                   }}
                 >
                   Upload Different File
                 </Button>
               )}
-              <Button
-                variant="outline"
-                onClick={resetApp}
-                className="gap-2 bg-transparent cursor-pointer"
-              >
+              <Button variant="outline" onClick={resetApp} className="gap-2 bg-transparent cursor-pointer">
                 <RotateCcw className="w-4 h-4" />
                 Reset
               </Button>
@@ -188,26 +162,15 @@ export default function UploadPage() {
                     {isProcessing ? (
                       <div className="animate-pulse">
                         <FileSpreadsheet className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-lg font-medium mb-2">
-                          Processing CSV...
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Please wait while we parse your file
-                        </p>
+                        <p className="text-lg font-medium mb-2">Processing CSV...</p>
+                        <p className="text-sm text-muted-foreground">Please wait while we parse your file</p>
                       </div>
                     ) : (
                       <>
                         <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-lg font-medium mb-2">
-                          Drop your CSV file here
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          or click to browse files
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="cursor-pointer bg-transparent"
-                        >
+                        <p className="text-lg font-medium mb-2">Drop your CSV file here</p>
+                        <p className="text-sm text-muted-foreground mb-4">or click to browse files</p>
+                        <Button variant="outline" className="cursor-pointer bg-transparent">
                           Choose File
                         </Button>
                       </>
@@ -219,23 +182,16 @@ export default function UploadPage() {
               {/* Column Mapping */}
               {isUploaded && (
                 <Card className="p-6 animate-fade-in">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Map CSV Columns
-                  </h3>
+                  <h3 className="text-lg font-semibold mb-4">Map CSV Columns</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <Label
-                          htmlFor="ps-number"
-                          className="text-sm font-medium"
-                        >
+                        <Label htmlFor="ps-number" className="text-sm font-medium">
                           PS Number <span className="text-destructive">*</span>
                         </Label>
                         <Select
                           value={columnMapping.psNumber}
-                          onValueChange={(value) =>
-                            updateColumnMapping("psNumber", value)
-                          }
+                          onValueChange={(value) => updateColumnMapping("psNumber", value)}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select column" />
@@ -256,9 +212,7 @@ export default function UploadPage() {
                         </Label>
                         <Select
                           value={columnMapping.title}
-                          onValueChange={(value) =>
-                            updateColumnMapping("title", value)
-                          }
+                          onValueChange={(value) => updateColumnMapping("title", value)}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select column" />
@@ -275,17 +229,12 @@ export default function UploadPage() {
                     </div>
 
                     <div>
-                      <Label
-                        htmlFor="description"
-                        className="text-sm font-medium"
-                      >
+                      <Label htmlFor="description" className="text-sm font-medium">
                         Description
                       </Label>
                       <Select
                         value={columnMapping.description}
-                        onValueChange={(value) =>
-                          updateColumnMapping("description", value)
-                        }
+                        onValueChange={(value) => updateColumnMapping("description", value)}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select column (optional)" />
@@ -303,17 +252,12 @@ export default function UploadPage() {
 
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <Label
-                          htmlFor="organisation"
-                          className="text-sm font-medium"
-                        >
+                        <Label htmlFor="organisation" className="text-sm font-medium">
                           Organisation
                         </Label>
                         <Select
                           value={columnMapping.organisation}
-                          onValueChange={(value) =>
-                            updateColumnMapping("organisation", value)
-                          }
+                          onValueChange={(value) => updateColumnMapping("organisation", value)}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select column (optional)" />
@@ -335,9 +279,29 @@ export default function UploadPage() {
                         </Label>
                         <Select
                           value={columnMapping.theme}
-                          onValueChange={(value) =>
-                            updateColumnMapping("theme", value)
-                          }
+                          onValueChange={(value) => updateColumnMapping("theme", value)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select column (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="None">None</SelectItem>
+                            {headers.map((header) => (
+                              <SelectItem key={header} value={header}>
+                                {header}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="submittedIdea" className="text-sm font-medium">
+                          Submitted Idea(s)
+                        </Label>
+                        <Select
+                          value={columnMapping.submittedIdea}
+                          onValueChange={(value) => updateColumnMapping("submittedIdea", value)}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select column (optional)" />
@@ -368,17 +332,9 @@ export default function UploadPage() {
                   <span className="inline-block w-2 h-2 rounded-full bg-success"></span>
                   CSV uploaded successfully ({rawData.length} rows)
                 </div>
-                <CSVPreview
-                  rawData={rawData}
-                  headers={headers}
-                  columnMapping={columnMapping}
-                />
+                <CSVPreview rawData={rawData} headers={headers} columnMapping={columnMapping} />
                 <div className="pt-2">
-                  <Button
-                    onClick={processData}
-                    disabled={!canProceed}
-                    className="w-full gap-2 cursor-pointer"
-                  >
+                  <Button onClick={processData} disabled={!canProceed} className="w-full gap-2 cursor-pointer">
                     Start Reviewing
                     <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -389,13 +345,7 @@ export default function UploadPage() {
         </div>
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
+      <input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelect} className="hidden" />
     </div>
-  );
+  )
 }

@@ -11,13 +11,19 @@ import { motion, AnimatePresence } from "framer-motion"
 
 interface ReviewCardProps {
   item: CSVRow
-  totalItems: Number
+  totalItems: number
   isDescriptionExpanded: boolean
   onToggleDescription: () => void
   onReview: (action: ReviewAction) => void
 }
 
-export function ReviewCard({ item, totalItems, isDescriptionExpanded, onToggleDescription, onReview }: ReviewCardProps) {
+export function ReviewCard({
+  item,
+  totalItems,
+  isDescriptionExpanded,
+  onToggleDescription,
+  onReview,
+}: ReviewCardProps) {
   const [isAnimating, setIsAnimating] = useState(false)
 
   const handleReview = (action: ReviewAction) => {
@@ -38,19 +44,26 @@ export function ReviewCard({ item, totalItems, isDescriptionExpanded, onToggleDe
       className={`transition-transform duration-200 ${isAnimating ? "scale-95" : "scale-100"}`}
     >
       <Card className="max-w-3xl mx-auto bg-gradient-to-br from-card to-accent/5 border-2 hover:shadow-xl transition-all duration-300">
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className="font-mono text-sm px-3 py-1">
-              {item.psNumber}
-            </Badge>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="font-mono text-sm px-3 py-1">
+                {item.psNumber}
+              </Badge>
+              {item.submittedIdea && (
+                <Badge variant="secondary" className="text-sm px-3 py-1">
+                  {item.submittedIdea}
+                </Badge>
+              )}
+            </div>
             <span className="text-sm text-muted-foreground">
               {item.rowNumber} / {totalItems as any}
             </span>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-balance leading-tight">{item.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-balance leading-tight">{item.title}</h1>
 
           {/* Description */}
           {item.description && (
@@ -114,37 +127,39 @@ export function ReviewCard({ item, totalItems, isDescriptionExpanded, onToggleDe
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-center gap-4 pt-6">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-6">
             <Button
               variant="outline"
               size="lg"
               onClick={() => handleReview("reject")}
-              className="gap-2 bg-destructive hover:bg-destructive/90 transition-colors"
+              className="gap-2 bg-destructive hover:bg-destructive/90 transition-colors w-full sm:w-auto"
             >
               <X className="w-5 h-5 text-white" />
               <span className="text-white">Reject</span>
-              <kbd className="ml-2 px-2 py-1 text-xs text-red-200 bg-destructive-foreground/10 rounded">←</kbd>
+              <kbd className="ml-2 px-2 py-1 text-xs text-red-200 bg-destructive-foreground/10 rounded hidden sm:inline">
+                ←
+              </kbd>
             </Button>
 
             <Button
               variant="outline"
               size="lg"
               onClick={() => handleReview("doable")}
-              className="gap-2 hover:bg-warning hover:text-warning-foreground transition-colors"
+              className="gap-2 hover:bg-warning hover:text-warning-foreground transition-colors w-full sm:w-auto"
             >
               <Minus className="w-5 h-5" />
               Doable
-              <kbd className="ml-2 px-2 py-1 text-xs bg-muted rounded">↓</kbd>
+              <kbd className="ml-2 px-2 py-1 text-xs bg-muted rounded hidden sm:inline">↓</kbd>
             </Button>
 
             <Button
               size="lg"
               onClick={() => handleReview("accept")}
-              className="gap-2 bg-success hover:bg-success/90 text-success-foreground"
+              className="gap-2 bg-success hover:bg-success/90 text-success-foreground w-full sm:w-auto"
             >
               <Check className="w-5 h-5" />
               Accept
-              <kbd className="ml-2 px-2 py-1 text-xs bg-success-foreground/20 rounded">→</kbd>
+              <kbd className="ml-2 px-2 py-1 text-xs bg-success-foreground/20 rounded hidden sm:inline">→</kbd>
             </Button>
           </div>
         </div>

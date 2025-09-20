@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useRef } from "react"
 import type { ReviewAction } from "@/lib/types"
+import { useMobile } from "@/hooks/use-mobile"
 
 interface TouchGesturesProps {
   onSwipe: (action: ReviewAction) => void
@@ -14,10 +15,11 @@ interface TouchGesturesProps {
 export function TouchGestures({ onSwipe, children, disabled = false }: TouchGesturesProps) {
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
+  const isMobile = useMobile()
 
   useEffect(() => {
     const element = elementRef.current
-    if (!element || disabled) return
+    if (!element || disabled || (isMobile && window.location.pathname === "/lists")) return
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0]
@@ -57,6 +59,8 @@ export function TouchGestures({ onSwipe, children, disabled = false }: TouchGest
     }
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (window.location.pathname === "/lists") return
+
       // Prevent default scrolling during potential swipe
       if (touchStartRef.current) {
         const touch = e.touches[0]
@@ -78,10 +82,10 @@ export function TouchGestures({ onSwipe, children, disabled = false }: TouchGest
       element.removeEventListener("touchend", handleTouchEnd)
       element.removeEventListener("touchmove", handleTouchMove)
     }
-  }, [onSwipe, disabled])
+  }, [onSwipe, disabled, isMobile])
 
   return (
-    <div ref={elementRef} className="touch-none">
+    <div ref={elementRef} className={isMobile && window.location.pathname === "/lists" ? "" : "touch-none"}>
       {children}
     </div>
   )

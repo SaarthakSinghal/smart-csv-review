@@ -5,6 +5,7 @@ export interface CSVRow {
   description: string
   organisation: string
   theme: string
+  submittedIdea: string
   rowNumber: number
 }
 
@@ -14,6 +15,7 @@ export interface ColumnMapping {
   description: string
   organisation: string
   theme: string
+  submittedIdea: string
 }
 
 export interface AppState {

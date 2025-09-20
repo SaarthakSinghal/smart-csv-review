@@ -8,7 +8,7 @@ import { ExportOptions } from "@/components/export-options"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Eye, RotateCcw } from "lucide-react"
+import { ArrowLeft, Eye, RotateCcw, Loader2 } from "lucide-react"
 import type { ReviewAction } from "@/lib/types"
 import { AppNavigation } from "@/components/app-navigation"
 
@@ -26,6 +26,7 @@ export default function ListsPage() {
   } = useCSVStore()
 
   const [activeTab, setActiveTab] = useState<ReviewAction>("accept")
+  const [isNavigating, setIsNavigating] = useState(false)
 
   // Redirect if no data
   if (csvData.length === 0) {
@@ -39,9 +40,20 @@ export default function ListsPage() {
   const handleItemClick = (itemId: string) => {
     const itemIndex = csvData.findIndex((item) => item.id === itemId)
     if (itemIndex >= 0) {
+      setIsNavigating(true)
       setCurrentIndex(itemIndex)
       router.push("/review")
     }
+  }
+
+  const handleBackToReview = () => {
+    setIsNavigating(true)
+    router.push("/review")
+  }
+
+  const handleContinueReview = () => {
+    setIsNavigating(true)
+    router.push("/review")
   }
 
   const stats = [
@@ -72,35 +84,53 @@ export default function ListsPage() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
       <AppNavigation />
 
-      <div className="container mx-auto px-4 py-8 pt-20">
+      {isNavigating && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex items-center gap-3 text-lg">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            Loading...
+          </div>
+        </div>
+      )}
+
+      <div className="container mx-auto px-4 py-4 sm:py-8 pt-16 sm:pt-20">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
               <div className="flex items-center gap-4 mb-2">
-                <Button variant="ghost" size="sm" onClick={() => router.push("/review")} className="gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToReview}
+                  className="gap-2"
+                  disabled={isNavigating}
+                >
                   <ArrowLeft className="w-4 h-4" />
                   Back
                 </Button>
-                <h1 className="text-3xl font-bold">Review Lists</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold">Review Lists</h1>
               </div>
-              <p className="text-muted-foreground">Organize and export your categorized problem statements</p>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Organize and export your categorized problem statements
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <ExportOptions acceptedItems={acceptedItems} doableItems={doableItems} rejectedItems={rejectedItems} />
-              <Button variant="outline" onClick={resetApp} className="gap-2 bg-transparent">
+              <Button variant="outline" onClick={resetApp} className="gap-2 bg-transparent flex-1 sm:flex-none">
                 <RotateCcw className="w-4 h-4" />
-                Reset All
+                <span className="hidden sm:inline">Reset All</span>
+                <span className="sm:hidden">Reset</span>
               </Button>
             </div>
           </div>
 
           {/* Progress Overview */}
-          <Card className="p-6 mb-8 animate-fade-in">
+          <Card className="p-4 sm:p-6 mb-6 sm:mb-8 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Review Progress</h3>
-              <span className="text-sm text-muted-foreground">
+              <h3 className="text-base sm:text-lg font-semibold">Review Progress</h3>
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 {totalReviewed} of {csvData.length} items reviewed
               </span>
             </div>
@@ -112,33 +142,37 @@ export default function ListsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className={`p-4 rounded-lg border ${stat.bgColor} ${stat.borderColor} text-center`}
+                  className={`p-3 sm:p-4 rounded-lg border ${stat.bgColor} ${stat.borderColor} text-center`}
                 >
-                  <div className={`text-2xl font-bold ${stat.color} mb-1`}>{stat.count}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <div className={`text-xl sm:text-2xl font-bold ${stat.color} mb-1`}>{stat.count}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               ))}
             </div>
           </Card>
 
           {/* Lists */}
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ReviewAction)} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="accept" className="gap-2">
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as ReviewAction)}
+            className="space-y-4 sm:space-y-6"
+          >
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="accept" className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
                 <div className="w-2 h-2 bg-success rounded-full" />
-                Accepted ({acceptedItems.length})
+                <span className="text-xs sm:text-sm">Accepted ({acceptedItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="doable" className="gap-2">
+              <TabsTrigger value="doable" className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
                 <div className="w-2 h-2 bg-warning rounded-full" />
-                Doable ({doableItems.length})
+                <span className="text-xs sm:text-sm">Doable ({doableItems.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="reject" className="gap-2">
+              <TabsTrigger value="reject" className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
                 <div className="w-2 h-2 bg-destructive rounded-full" />
-                Rejected ({rejectedItems.length})
+                <span className="text-xs sm:text-sm">Rejected ({rejectedItems.length})</span>
               </TabsTrigger>
             </TabsList>
 
@@ -178,12 +212,12 @@ export default function ListsPage() {
 
           {/* Quick Actions */}
           {totalReviewed < csvData.length && (
-            <Card className="p-6 mt-8 text-center animate-slide-in-right">
-              <h3 className="text-lg font-semibold mb-2">Continue Reviewing</h3>
-              <p className="text-muted-foreground mb-4">
+            <Card className="p-4 sm:p-6 mt-6 sm:mt-8 text-center animate-slide-in-right">
+              <h3 className="text-base sm:text-lg font-semibold mb-2">Continue Reviewing</h3>
+              <p className="text-muted-foreground mb-4 text-sm sm:text-base">
                 You have {csvData.length - totalReviewed} items left to review
               </p>
-              <Button onClick={() => router.push("/review")} className="gap-2">
+              <Button onClick={handleContinueReview} className="gap-2" disabled={isNavigating}>
                 <Eye className="w-4 h-4" />
                 Continue Review
               </Button>
