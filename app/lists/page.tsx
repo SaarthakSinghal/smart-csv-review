@@ -80,7 +80,7 @@ export default function ListsPage() {
               <div className="flex items-center gap-4 mb-2">
                 <Button variant="ghost" size="sm" onClick={() => router.push("/review")} className="gap-2">
                   <ArrowLeft className="w-4 h-4" />
-                  Back to Review
+                  Back
                 </Button>
                 <h1 className="text-3xl font-bold">Review Lists</h1>
               </div>

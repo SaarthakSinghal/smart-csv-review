@@ -109,6 +109,7 @@ export default function ReviewPage() {
           <TouchGestures onSwipe={reviewItem}>
             <ReviewCard
               item={currentItem}
+              totalItems={csvData.length}
               isDescriptionExpanded={isDescriptionExpanded}
               onToggleDescription={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
               onReview={reviewItem}

@@ -11,12 +11,13 @@ import { motion, AnimatePresence } from "framer-motion"
 
 interface ReviewCardProps {
   item: CSVRow
+  totalItems: Number
   isDescriptionExpanded: boolean
   onToggleDescription: () => void
   onReview: (action: ReviewAction) => void
 }
 
-export function ReviewCard({ item, isDescriptionExpanded, onToggleDescription, onReview }: ReviewCardProps) {
+export function ReviewCard({ item, totalItems, isDescriptionExpanded, onToggleDescription, onReview }: ReviewCardProps) {
   const [isAnimating, setIsAnimating] = useState(false)
 
   const handleReview = (action: ReviewAction) => {
@@ -44,7 +45,7 @@ export function ReviewCard({ item, isDescriptionExpanded, onToggleDescription, o
               {item.psNumber}
             </Badge>
             <span className="text-sm text-muted-foreground">
-              {item.rowNumber} / {item.rowNumber}
+              {item.rowNumber} / {totalItems as any}
             </span>
           </div>
 
@@ -118,11 +119,11 @@ export function ReviewCard({ item, isDescriptionExpanded, onToggleDescription, o
               variant="outline"
               size="lg"
               onClick={() => handleReview("reject")}
-              className="gap-2 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+              className="gap-2 bg-destructive hover:bg-destructive/90 transition-colors"
             >
               <X className="w-5 h-5" />
               Reject
-              <kbd className="ml-2 px-2 py-1 text-xs bg-muted rounded">←</kbd>
+              <kbd className="ml-2 px-2 py-1 text-xs text-red-200 bg-destructive-foreground/20 rounded">←</kbd>
             </Button>
 
             <Button
